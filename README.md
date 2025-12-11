@@ -17,17 +17,17 @@
 本项目提供了一套完整的FastGPT本地化部署实战指南，基于vLLM（推理加速）和TEI（向量加速）构建，充分发挥单卡显存性能，实现高并发、低延迟的知识库问答。
 
 ### 核心特性
-- 🇨🇳 **国内网络优化**：提供 HuggingFace 镜像下载、Docker 镜像代理配置全流程。
-* ⚡ **高性能推理**：使用 vLLM 部署 Qwen2.5-7B，使用 TEI 部署 BGE-M3。
-* 💾 **显存精细管理**：通过参数调优，实现 LLM与 Embedding 模型在单卡 24G 显存下的稳定共存。
-* 🌐 **公网访问**：集成 FRP + Nginx 方案，实现内网服务的公网安全访问。
+- 🇨🇳 **国内网络优化**：提供HuggingFace镜像下载、Docker镜像代理配置全流程。
+- ⚡ **高性能推理**：使用vLLM部署Qwen2.5-7B，使用TEI部署BGE-M3。
+- 💾 **显存精细管理**：通过参数调优，实现LLM与Embedding模型在单卡显存下的稳定共存。
+- 🌐 **公网访问**：集成FRP + Nginx方案，实现内网服务的公网安全访问。
 
 ## 🛠️ 技术栈
-- FastGPT + MongoDB + PostgreSQL
-- vLLM(Qwen2.5-7B)
-- TEI(BGE-M3)
-- FRP + Nginx
-- Docker & Docker Compose
+- **应用层**：FastGPT + MongoDB + PostgreSQL(pgvector)
+- **推理层**：vLLM(Qwen2.5-7B-Instruct)
+- **索引层**：Text Embeddings Inference(BAAI/bge-m3)
+- **网络层**：FRP(内网穿透) + Nginx(反向代理)
+- **容器化**：Docker & Docker Compose
 
 ## ⚡ 快速开始
 
