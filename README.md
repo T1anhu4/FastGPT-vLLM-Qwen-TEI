@@ -3,71 +3,55 @@ An end-to-end deployment solution for a high-performance private RAG knowledge b
 基于vLLM(Qwen2.5)的FastGPT高性能私有RAG知识库和Frp+Nginx公网访问的一站式部署方案。
 
 
-# FastGPT 企业级本地知识库全链路部署指南 (完整版 v2.0)
+# 🚀 FastGPT + vLLM 全链路本地化部署指南
 
-> **文档日期：** 2025-12-11
-> **环境架构：** Ubuntu 22.04 + NVIDIA GPU (24G VRAM)
-> **核心组件：** FastGPT + vLLM (Qwen2.5-7B) + TEI (BGE-M3) + Docker + FRP + Nginx
-> **文档目标：** 记录从零开始在纯本地算力下搭建可公网访问的企业级 AI 知识库的全过程，重点解决国内网络环境下的资源获取与配置问题。
+> 基于 Ubuntu + 单卡 24G 显存的企业级知识库私有化方案。
+> 专为**国内内网环境**优化，解决 HuggingFace 下载、Docker 镜像加速及显存 OOM 等痛点。
 
----
+![FastGPT](https://img.shields.io/badge/FastGPT-v4.x-blue)
+![vLLM](https://img.shields.io/badge/vLLM-0.6.x-green)
+![Qwen](https://img.shields.io/badge/Model-Qwen2.5--7B-violet)
+![TEI](https://img.shields.io/badge/Embedding-BGE--M3-orange)
 
-## 📖 第一章：网络环境与部署策略
+## 📖 项目简介
 
-在部署 AI 模型时，网络环境决定了 90% 的难度。针对**外网**和**国内内网**，部署策略截然不同。
+本项目提供了一套完整的 FastGPT 本地化部署实战指南。不同于简单的 demo，本方案基于 **vLLM (推理加速)** 和 **TEI (向量加速)** 构建，能够充分榨干单张 24G 显卡（如 RTX 3090/4090）的性能，实现高并发、低延迟的知识库问答。
 
-### 1.1 场景 A：国际互联网络 (Global Access)
-* **适用场景：** 海外服务器，或拥有通畅的国际互联网访问权限。
-* **部署策略：** 直接运行 Docker，容器内部自动下载模型。
-* **命令示例：**
-    ```bash
-    docker run -d --gpus all -p 8008:80 ghcr.io/huggingface/text-embeddings-inference --model-id BAAI/bge-m3
-    ```
+**核心特性：**
+* 🇨🇳 **国内网络优化**：提供 HuggingFace 镜像下载、Docker 镜像代理配置全流程。
+* ⚡ **高性能推理**：使用 vLLM 部署 Qwen2.5-7B，使用 TEI 部署 BGE-M3。
+* 💾 **显存精细管理**：通过参数调优，实现 LLM与 Embedding 模型在单卡 24G 显存下的稳定共存。
+* 🌐 **公网访问**：集成 FRP + Nginx 方案，实现内网服务的公网安全访问。
 
-### 1.2 场景 B：中国局域网/受限网络 (China Intranet) —— **[本次实战环境]**
-* **适用场景：** 国内服务器，无法直连 HuggingFace，GitHub 访问慢或中断，Docker Hub 被墙。
-* **部署策略：**
-    1.  **镜像加速：** 必须配置 Docker 镜像代理（如南京大学源）。
-    2.  **模型代理：** 必须设置 `HF_ENDPOINT=https://hf-mirror.com`。
-    3.  **“外科手术式”部署：** 放弃容器自动下载，改为 **宿主机手动下载 + 挂载目录** 启动（彻底规避容器内网络不稳定导致的 EOF 错误）。
-    4.  **垃圾文件规避：** 下载时必须排除 `.DS_Store` 等导致 403 错误的文件。
+## 🛠️ 技术栈
 
----
+* **应用层**：FastGPT + MongoDB + PostgreSQL (pgvector)
+* **推理层**：vLLM (Qwen2.5-7B-Instruct)
+* **索引层**：Text Embeddings Inference (BAAI/bge-m3)
+* **网络层**：FRP (内网穿透) + Nginx (反向代理)
+* **容器化**：Docker & Docker Compose
 
-## 🛠️ 第二章：基础环境修复
+## ⚡ 快速开始
 
-### 2.1 Docker 镜像加速配置 (解决启动失败)
-国内环境必须配置镜像加速，但 `daemon.json` 格式极其严格。
+### 1. 环境准备
+* 操作系统：Ubuntu 20.04/22.04
+* 显卡驱动：CUDA 12.1+
+* 显存要求：≥ 24GB (推荐 RTX 3090/4090 或 A10)
 
-* **文件路径：** `/etc/docker/daemon.json`
-* **⚠️ 避坑指南：** JSON 数组最后一项**绝对不能**有逗号，否则 Docker 无法启动 (`unable to configure daemon`)。
-* **正确内容：**
-    ```json
-    {
-      "registry-mirrors": [
-        "[https://docker.nju.edu.cn](https://docker.nju.edu.cn)",
-        "[https://docker.m.daocloud.io](https://docker.m.daocloud.io)"
-      ]
-    }
-    ```
-* **重启命令：**
-    ```bash
-    sudo systemctl daemon-reload
-    sudo systemctl restart docker
-    ```
+### 2. 模型下载 (国内加速方案)
+本方案放弃 Docker 自动下载，采用更稳定的“宿主机下载+挂载”模式。
 
-### 2.2 修复 iptables 缺失 (解决网络创建失败)
-Ubuntu 重启后，Docker 可能报错 `iptables failed: no such file or directory`。
-* **修复命令：**
-    ```bash
-    sudo ln -s /usr/sbin/iptables-legacy /usr/sbin/iptables
-    ```
-
----
-
-## 📥 第三章：模型下载 (解决网络阻断)
-
-### 3.1 安装下载工具
 ```bash
-conda activate llm
+# 1. 安装工具
 pip install huggingface_hub
+
+# 2. 设置国内镜像
+export HF_ENDPOINT=[https://hf-mirror.com](https://hf-mirror.com)
+
+# 3. 下载 Qwen2.5 (对话模型)
+huggingface-cli download --resume-download Qwen/Qwen2.5-7B-Instruct --local-dir /your/path/Qwen2.5
+
+# 4. 下载 BGE-M3 (索引模型) - 关键：排除垃圾文件防止 403 错误
+huggingface-cli download --resume-download BAAI/bge-m3 \
+    --local-dir /your/path/bge-m3 \
+    --exclude "*.DS_Store"
