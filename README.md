@@ -42,11 +42,11 @@
 pip install huggingface_hub
 export HF_ENDPOINT=https://hf-mirror.com
 
-# Qwen2.5, '/your/path/'切换成你实际下载到本地的路径
+# Qwen2.5, 将'/your/path/'切换成你实际下载到本地的路径
 huggingface-cli download --resume-download Qwen/Qwen2.5-7B-Instruct \
   --local-dir /your/path/Qwen2.5 
 
-# BGE-M3, '/your/path/'切换成你实际下载到本地的路径
+# BGE-M3, 将'/your/path/'切换成你实际下载到本地的路径
 huggingface-cli download --resume-download BAAI/bge-m3 \
   --local-dir /your/path/bge-m3 \
   --exclude "*.DS_Store"
@@ -54,10 +54,10 @@ huggingface-cli download --resume-download BAAI/bge-m3 \
 
 ### 3.启动本地模型服务
 
-## 3.1启动 vLLM (对话模型服务)
+### 3.1启动vLLM(对话模型服务)
 - 注意：本项目为了保证单卡24G显存能够同时运行Embedding模型，我将vLLM的显存利用率严格限制在80%，实际可根据自己显卡的显存来调整这个比例。
 ```bash
-# 请将 /your/path/Qwen2.5 替换为您实际的模型下载路径
+# 将/your/path/Qwen2.5替换为您实际的模型下载路径
 python -m vllm.entrypoints.openai.api_server \
     --model /your/path/Qwen2.5 \
     --served-model-name Qwen2.5 \
@@ -68,5 +68,17 @@ python -m vllm.entrypoints.openai.api_server \
     --api-key sk-123456
 ```
 - --served-model-name Qwen2.5: 关键参数，强制指定模型名称，防止FastGPT报错404。
-- --gpu-memory-utilization 0.8: 预留约 20% 显存给 TEI 模型使用。
+- --gpu-memory-utilization 0.8: 预留约20%显存给TEI模型使用。
+
+### 3.2 启动TEI(向量索引服务)
+- 注意：本项目使用Docker挂载本地模型目录，彻底规避容器内下载失败的问题。
+```bash
+# 将/your/path/bge-m3替换为您实际的模型下载路径
+# 使用m.daocloud.io代理ghcr.io镜像
+sudo docker run --gpus all -d --name tei-bge \
+    -p 8008:80 \
+    -v /your/path/bge-m3:/data \
+    m.daocloud.io/ghcr.io/huggingface/text-embeddings-inference:latest \
+    --model-id /data
+```
 
