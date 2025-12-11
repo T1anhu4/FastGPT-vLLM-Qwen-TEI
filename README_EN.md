@@ -1,12 +1,10 @@
-An end-to-end deployment solution for a high-performance private RAG knowledge base powered by FastGPT with vLLM (Qwen2.5), combined with public access via FRP and Nginx.
-
 <div align="right">
   <a href="README.md">🇨🇳 中文版</a>
 </div>
 
-# 🚀 FastGPT + vLLM End-to-End Local Deployment Guide
+# 🚀 FastGPT-vLLM-Qwen-TEI End-to-End Local Deployment Guide
 
-> An enterprise-grade private RAG deployment solution based on Ubuntu + a single 24GB GPU.  
+> An end-to-end deployment solution for a high-performance private RAG knowledge base powered by FastGPT with vLLM (Qwen2.5), combined with public access via FRP and Nginx. 
 > Optimized for China mainland intranet environments, solving issues like HF model downloading, Docker image acceleration, and GPU OOM.
 
 ![FastGPT](https://img.shields.io/badge/FastGPT-v4.x-blue)
