@@ -42,12 +42,31 @@
 pip install huggingface_hub
 export HF_ENDPOINT=https://hf-mirror.com
 
-# Qwen2.5
+# Qwen2.5, '/your/path/'切换成你实际下载到本地的路径
 huggingface-cli download --resume-download Qwen/Qwen2.5-7B-Instruct \
-  --local-dir /your/path/Qwen2.5
+  --local-dir /your/path/Qwen2.5 
 
-# BGE-M3
+# BGE-M3, '/your/path/'切换成你实际下载到本地的路径
 huggingface-cli download --resume-download BAAI/bge-m3 \
   --local-dir /your/path/bge-m3 \
   --exclude "*.DS_Store"
+```
+
+### 3.启动本地模型服务
+
+## 3.1启动 vLLM (对话模型服务)
+- 注意：本项目为了保证单卡24G显存能够同时运行Embedding模型，我将vLLM的显存利用率严格限制在80%，实际可根据自己显卡的显存来调整这个比例。
+```bash
+# 请将 /your/path/Qwen2.5 替换为您实际的模型下载路径
+python -m vllm.entrypoints.openai.api_server \
+    --model /your/path/Qwen2.5 \
+    --served-model-name Qwen2.5 \
+    --max-model-len 8192 \
+    --gpu-memory-utilization 0.8 \
+    --port 8000 \
+    --host 0.0.0.0 \
+    --api-key sk-123456
+```
+- --served-model-name Qwen2.5: 关键参数，强制指定模型名称，防止FastGPT报错404。
+- --gpu-memory-utilization 0.8: 预留约 20% 显存给 TEI 模型使用。
 
