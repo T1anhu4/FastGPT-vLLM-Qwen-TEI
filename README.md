@@ -1,5 +1,4 @@
 # FastGPT-vLLM-Qwen-TEI
-An end-to-end deployment solution for a high-performance private RAG knowledge base powered by FastGPT with vLLM (Qwen2.5), combined with public access via FRP and Nginx.
 基于vLLM(Qwen2.5)的FastGPT高性能私有RAG知识库和Frp+Nginx公网访问的一站式部署方案。
 
 
@@ -7,10 +6,10 @@ An end-to-end deployment solution for a high-performance private RAG knowledge b
   <a href="README_EN.md">🌐 English Version</a>
 </div>
 
-# 🚀 FastGPT + vLLM 全链路本地化部署指南
+# 🚀FastGPT + vLLM全链路本地化部署指南
 
-> 基于 Ubuntu + 单卡 24G 显存的企业级知识库私有化方案。
-> 专为国内内网环境优化，解决 HuggingFace 下载、Docker 镜像加速及显存 OOM 等痛点。
+> 基于Ubuntu + 单卡24G显存的企业级知识库私有化方案。
+> 专为国内内网环境优化，解决HuggingFace下载、Docker镜像加速及显存OOM等痛点。
 
 ![FastGPT](https://img.shields.io/badge/FastGPT-v4.x-blue)
 ![vLLM](https://img.shields.io/badge/vLLM-0.6.x-green)
@@ -19,18 +18,18 @@ An end-to-end deployment solution for a high-performance private RAG knowledge b
 
 ## 📖 项目简介
 
-本项目提供了一套完整的 FastGPT 本地化部署实战指南，基于 vLLM（推理加速）和 TEI（向量加速）构建，充分发挥单卡 24G 显存性能，实现高并发、低延迟的知识库问答。
+本项目提供了一套完整的FastGPT本地化部署实战指南，基于vLLM（推理加速）和TEI（向量加速）构建，充分发挥单卡显存性能，实现高并发、低延迟的知识库问答。
 
 ### 核心特性
 - 🇨🇳 国内网络优化
 - ⚡ 高性能推理
 - 💾 显存精细管理
-- 🌐 FRP + Nginx 公网访问方案
+- 🌐 FRP + Nginx公网访问方案
 
 ## 🛠️ 技术栈
 - FastGPT + MongoDB + PostgreSQL
-- vLLM (Qwen2.5-7B)
-- TEI (BGE-M3)
+- vLLM(Qwen2.5-7B)
+- TEI(BGE-M3)
 - FRP + Nginx
 - Docker & Docker Compose
 
@@ -39,7 +38,7 @@ An end-to-end deployment solution for a high-performance private RAG knowledge b
 ### 1. 环境要求
 - Ubuntu 20.04 / 22.04
 - CUDA 12.1+
-- 显存 ≥ 24GB
+- 显存 ≥ 24GB (实际可以不用这么大，根据自己显存调节模型即可)
 
 ### 2. 国内加速模型下载
 
