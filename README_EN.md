@@ -4,8 +4,8 @@
 
 # 🚀FastGPT vLLM Qwen TEI Full Link Localization Deployment
 
-> A one-stop deployment solution for FastGPT high-performance private RAG knowledge base and Frp+Nginx public network access based on vLLM (Qwen2.5)
-> Specially optimized for domestic intranet environments, solving pain points such as HuggingFace downloads, Docker image acceleration, and out of memory (OOM) issues
+> A one-stop deployment solution for FastGPT high-performance private RAG knowledge base and Frp+Nginx public network access based on vLLM (Qwen2.5).
+> Specially optimized for domestic intranet environments, out of memory (OOM) issues.
 
 ![FastGPT]( https://img.shields.io/badge/FastGPT-blue )
 ![vLLM]( https://img.shields.io/badge/vLLM-0.12.0-green )
@@ -14,13 +14,12 @@
 
 ## 📖Project Introduction
 
-This project provides a complete set of practical guidelines for localized deployment of FastGPT, based on vLLM (inference acceleration) and TEI (vector acceleration), fully leveraging the performance of single card graphics memory to achieve high concurrency and low latency knowledge base Q&A
+This project provides a complete set of practical guidelines for localized deployment of FastGPT, based on vLLM (inference acceleration) and TEI (vector acceleration), fully leveraging the performance of single card graphics memory to achieve high concurrency and low latency knowledge base Q&A.
 
 ### Core Features
-- 🇨🇳 Domestic network optimization: Provides the full process of HuggingFace image download and Docker image proxy configuration
-- ⚡ High performance inference: deploying Qwen2.5-7B using vLLM and BGE-M3 using TEI
-- 💾 Fine management of VRAM: Through parameter tuning, achieve stable coexistence of LLM and Embedding models in single card VRAM
-- 🌐 Public Access: Integrated FRP+Nginx solution to achieve secure public access to internal network services
+- ⚡ High performance inference: deploying Qwen2.5-7B using vLLM and BGE-M3 using TEI.
+- 💾 Fine management of VRAM: Through parameter tuning, achieve stable coexistence of LLM and Embedding models in single card VRAM.
+- 🌐 Public Access: Integrated FRP+Nginx solution to achieve secure public access to internal network services.
 
 ## 🛠️tech stack
 - Application layer: FastGPT+MongoDB+PostgreSQL(pgvector)
@@ -31,7 +30,7 @@ This project provides a complete set of practical guidelines for localized deplo
 
 ## ⚡Quick Start
 
-## 1. environment setup
+## 1. Environment setup
 The following is the machine configuration and environment that I personally deployed:
 - Ubuntu 22.04
 - CUDA 12.1
@@ -41,11 +40,11 @@ The following is the machine configuration and environment that I personally dep
 - Dcoker Compose 2.20.3
 
 ### 1.1 Installing NVIDIA Drivers and CUDA
-Ensure that Nvidia smi can output graphics card information normally. Recommend installing CUDA version 12.1 or above
-Detailed installation tutorials can be searched for on your own, and this project will not go into too much detail
+Ensure that Nvidia smi can output graphics card information normally. Recommend installing CUDA version 12.1 or above.
+Detailed installation tutorials can be searched for on your own, and this project will not go into too much detail.
 
 ### 1.2 Installing Docker and NVIDIA Container Toolkit
-- Note: NVIDIA Container Toolkit must be installed, otherwise Docker containers cannot call the graphics card
+- Note: NVIDIA Container Toolkit must be installed, otherwise Docker containers cannot call the graphics card.
 
 ```bash
 # 1. Install Docker
@@ -109,9 +108,9 @@ huggingface-cli download --resume-download BAAI/bge-m3 \
 
 ## 3. Start local model service
 ### 3.1 Start vLLM (Qwen2.5)
-- Note: In order to ensure that a single card with 24GB of VRAM can run the Embedding model simultaneously, I have strictly limited the VRAM utilization rate of vLLM to 80%. In practice, this ratio can be adjusted according to the VRAM of your own graphics card
-- `-- served model name Qwen2.5`: Key parameter, enforces the specification of model name to prevent FastGPT from reporting error 404
-- GPU memory tilization 0.8: Reserve approximately 20% of video memory for use by TEI models
+- Note: In order to ensure that a single card with 24GB of VRAM can run the Embedding model simultaneously, I have strictly limited the VRAM utilization rate of vLLM to 80%. In practice, this ratio can be adjusted according to the VRAM of your own graphics card.
+- `--served-model-name Qwen2.5`: Key parameter, enforces the specification of model name to prevent FastGPT from reporting error 404.
+- `--gpu-memory-utilization 0.8`: Reserve approximately 20% of video memory for use by TEI models.
 ```bash
 # Replace/yours/path/Qwen2.5 with the model path that was just downloaded
 python -m vllm.entrypoints.openai.api_server \
@@ -125,7 +124,7 @@ python -m vllm.entrypoints.openai.api_server \
 ```
 
 ### 3.2 Start TEI (BGE-M3)
-- Attention: This project uses Docker to mount the local model directory, completely avoiding the problem of download failure within the container
+- Attention: This project uses Docker to mount the local model directory, completely avoiding the problem of download failure within the container.
 ```bash
 # Replace/yours/path/boge-m3 with the newly downloaded model path
 # Use m.daocloud.io as a proxy for ghcr.io images
@@ -137,8 +136,8 @@ m.daocloud.io/ghcr.io/huggingface/text-embeddings-inference:latest \
 ```
 ## 4. Deploy FastGPT
 ### 4.1 Creating directories and pulling configuration files
-- Please choose to download the following two images yourself. If you are unable to download them, you can manually download them from this repository
-- I have uploaded the files `docker-compose.yml` and `config.json` to this repository
+- Please choose to download the following two images yourself. If you are unable to download them, you can manually download them from this repository.
+- I have uploaded the files `docker-compose.yml` and `config.json` to this repository.
 ```bash
 # Domestic mirror (Alibaba Cloud)
 bash <(curl -fsSL  https://doc.fastgpt.cn/deploy/install.sh ) --region=cn --vector=pg
@@ -148,8 +147,8 @@ bash <(curl -fsSL  https://doc.fastgpt.cn/deploy/install.sh ) --region=global --
 ```
 
 ###4.2 Modify configuration file (optional)
-- Normally, `docker-compose.yml` does not require modification. If there is a port conflict, the `ports` mapping can be modified
-- `config. json` is used for system level configuration, it is recommended to keep it as default. We configure the model through the web interface
+- Normally, `docker-compose.yml` does not require modification. If there is a port conflict, the `ports` mapping can be modified.
+- `config. json` is used for system level configuration, it is recommended to keep it as default. We configure the model through the web interface.
 - The modifications to this project are as follows:
 `docker-compose.yml`
 ```bash
@@ -203,8 +202,8 @@ restart: always
 # Start all services (Mongo, Postgres, FastGPT, OneAPI)
 docker-compose up -d
 ```
-- Access address: `http://localhost:3000 `(Default account: 'root', password: 'Docker-compose. yml' in 'DEFAULT_SOOT_PSW')
-- The official default password, I remember, is `1234`
+- Access address: `http://localhost:3000 `(Default account: 'root', password: 'Docker-compose. yml' in 'DEFAULT_SOOT_PSW').
+- The official default password, I remember, is `1234`.
 
 ### 4.4 Configuring Model Channels
 Go to `FastGPT` -> `Account` -> `Model Provider` -> `Model Channel` -> `New Channel`:
@@ -213,7 +212,7 @@ Go to `FastGPT` -> `Account` -> `Model Provider` -> `Model Channel` -> `New Chan
 - Channel name: Write whatever you want
 - Protocol Type: `OpenAI`
 - Model: `New Model` -> `Language Model'`
-- Model ID: `Qwen2.5` (which can also be set in the vLLM startup command)
+- Model ID: `Qwen2.5` (which can also be set in the vLLM startup command.)
 - Model provider: `Tongyi Qianwen`
 - Alias: Write whatever you want
 - Maximum context: `12288`
@@ -222,13 +221,13 @@ Go to `FastGPT` -> `Account` -> `Model Provider` -> `Model Channel` -> `New Chan
 - Right function switch: ✅ Tool invocation ✅ Knowledge base processing ✅ Problem classification ✅ text extraction ✅ Tool call node (can be set according to one's own needs)
 - After setting up the model, click `confirm` and select `Qwen2.5` model
 - Proxy address: `http://172.17.0.1:8000/v1 `(Host gateway IP)
-- API key: `sk-123456` (This can be set by yourself when using vLLM to start the model. If the startup command is not set, this field can be filled in freely)
+- API key: `sk-123456` (This can be set by yourself when using vLLM to start the model. If the startup command is not set, this field can be filled in freely.)
 
 2. BGE-M3 configuration:
 - Channel name: Write whatever you want
 - Protocol Type: `OpenAI`
 - Model: `New Model` -> `Index Model`
-- Model ID: `BAAI/bge-m3` (this can also be set in the vLLM startup command)
+- Model ID: `BAAI/bge-m3` (this can also be set in the vLLM startup command.)
 - Model provider: `OpenAI`
 - Alias: Write whatever you want
 - ✅  normalization
@@ -237,14 +236,14 @@ Go to `FastGPT` -> `Account` -> `Model Provider` -> `Model Channel` -> `New Chan
 - Maximum context: `8192`
 - After setting up the model, click 'confirm' and select 'BAII/bge-m3' model
 - Proxy address:`http://172.17.0.1:8000/v1 `(Host gateway IP)
-- API key: `sk-aaabbb` (I didn't set it when I started it here, so I filled it in randomly)
+- API key: `sk-aaabbb` (I didn't set it when I started it here, so I filled it in randomly.)
 
-After configuring both models, you can perform 'model testing' separately to check if they are functioning properly
-If everything is normal, you can proceed to the next step. If there are any abnormalities, use tools such as curl to check if the network communication is normal (Docker's communication with the host machine is usually blocked by the firewall)
+After configuring both models, you can perform 'model testing' separately to check if they are functioning properly.
+If everything is normal, you can proceed to the next step. If there are any abnormalities, use tools such as curl to check if the network communication is normal (Docker's communication with the host machine is usually blocked by the firewall).
 
 ## 5. Public network access (FRP+Nginx)
 ### 5.1 Download FRP
-- Note: Both the cloud server and local client need to download and decompress this package
+- Note: Both the cloud server and local client need to download and decompress this package.
 ```bash
 # Create a folder to store FRP files
 mkdir ./frp && cd ./frp
@@ -276,7 +275,9 @@ token = 8f7d6c5b4a3e2d1c9b8a7f6e5d4c3b2a
 # Enable TLS - Required
 tls_enable = true
 ```
-After the configuration is completed and saved, the frps service can be started
+
+After the configuration is completed and saved, the frps service can be started.
+
 ```bash
 ./frps -c ./frps.ini
 ```
@@ -312,7 +313,9 @@ local_ip = 127.0.0.1
 local_port = 9000
 remote_port = 7002
 ```
-After the configuration is completed and saved, the frps service can be started
+
+After the configuration is completed and saved, the frps service can be started.
+
 ```bash
 ./frpc -c ./frpc.ini
 ```
