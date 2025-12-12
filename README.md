@@ -107,8 +107,8 @@ huggingface-cli download --resume-download BAAI/bge-m3 \
   --exclude "*.DS_Store"
 ```
 
-## 3.启动本地模型服务
-### 3.1启动vLLM(Qwen2.5)
+## 3. 启动本地模型服务
+### 3.1 启动vLLM(Qwen2.5)
 - 注意：本项目为了保证单卡24G显存能够同时运行Embedding模型，我将vLLM的显存利用率严格限制在80%，实际可根据自己显卡的显存来调整这个比例。
 - `--served-model-name Qwen2.5`: 关键参数，强制指定模型名称，防止FastGPT报错404。
 - `--gpu-memory-utilization 0.8`: 预留约20%显存给TEI模型使用。
@@ -136,7 +136,7 @@ sudo docker run --gpus all -d --name tei-bge \
     --model-id /data
 ```
 
-## 4.部署FastGPT
+## 4. 部署FastGPT
 ### 4.1 创建目录与拉取配置文件
 - 以下两个镜像自行选择下载,若无法下载可以在本仓库中手动下载。
 - `docker-compose.yml`和`config.json`文件我已经上传在本仓库了。
@@ -209,7 +209,8 @@ docker-compose up -d
 
 ### 4.4 配置模型渠道
 进入FastGPT -> 账号 -> 模型提供商 -> 模型渠道 -> 新建渠道：
-1.Qwen2.5配置：
+
+1. Qwen2.5配置：
 - 渠道名：想写啥写啥
 - 协议类型：`OpenAI`
 - 模型：`新增模型` -> `语言模型`
@@ -224,7 +225,7 @@ docker-compose up -d
 - 代理地址：`http://172.17.0.1:8000/v1`(宿主机网关IP)
 - API密钥：`sk-123456`(这个在使用vLLM启动模型时可自行设置，若启动命令没设置则此栏可以随便填)
 
-2.BGE-M3配置：
+2. BGE-M3配置：
 - 渠道名：想写啥写啥
 - 协议类型：`OpenAI`
 - 模型：`新增模型` -> `索引模型`
@@ -242,8 +243,8 @@ docker-compose up -d
 都配置完后可以分别对这两个模型进行`模型测试`下，测试下是否正常
 正常的话可以进行下一步了，有异常的话用curl等工具检查下网络通信是否正常(Docker与宿主机的通信是否正常，通常都是防火墙拦截了)
 
-## 5.公网访问(FRP + Nginx)
-### 5.1 下载frps
+## 5. 公网访问(FRP + Nginx)
+### 5.1 下载frp
 - 注：云服务器和本地客户端都要下载解压这个包
 ```bash
 # 创建个文件夹放frp文件
@@ -392,5 +393,5 @@ sudo systemctl reload nginx
 
 此时去公网访问```123.456.789.112:7001```就可以进入到fastgpt的页面了
 
-🤝贡献
-欢迎提交Issue
+##🤝贡献
+###欢迎提交Issue
