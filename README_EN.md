@@ -1,5 +1,5 @@
 <div align="right">
-<a href="README_EN.md"> 🌐  简体中文</a>
+<a href="README.md"> 🌐  简体中文</a>
 </div>
 
 # 🚀FastGPT vLLM Qwen TEI Full Link Localization Deployment
@@ -40,11 +40,11 @@ The following is the machine configuration and environment that I personally dep
 - Dcoker Compose 2.20.3
 
 ### 1.1 Installing NVIDIA Drivers and CUDA
-Ensure that Nvidia smi can output graphics card information normally. Recommend installing CUDA version 12.1 or above.
+Ensure that `nvidia-smi` can output graphics card information normally. Recommend installing CUDA version 12.1 or above.
 Detailed installation tutorials can be searched for on your own, and this project will not go into too much detail.
 
 ### 1.2 Installing Docker and NVIDIA Container Toolkit
-- Note: NVIDIA Container Toolkit must be installed, otherwise Docker containers cannot call the graphics card.
+- Note: `NVIDIA Container Toolkit` must be installed, otherwise Docker containers cannot call the graphics card.
 
 ```bash
 # 1. Install Docker
