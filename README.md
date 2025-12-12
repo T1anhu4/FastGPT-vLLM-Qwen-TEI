@@ -35,8 +35,8 @@
 以下是我个人部署的机器配置和环境：
 - Ubuntu 22.04
 - CUDA 12.1
-- RTX3090-24GB
-- Python3.10
+- RTX3090 24GB
+- Python 3.10
 - Docker 28.2.2
 - Dcoker Compose 2.20.3
 
@@ -80,7 +80,7 @@ sudo systemctl daemon-reload
 sudo systemctl restart docker
 ```
 
-###1.3 安装Python环境
+### 1.3 安装Python环境
 - 注意：本项目使用的是`Miniforge`安装的虚拟环境，当然你也可以不用虚拟环境，用你自己的本地Python环境也行，自行选择~
 ```bash
 # 创建并激活环境
@@ -151,6 +151,53 @@ bash <(curl -fsSL https://doc.fastgpt.cn/deploy/install.sh) --region=global --ve
 ### 4.2 修改配置文件(可选)
 - 通常情况下，`docker-compose.yml`无需修改。如果端口冲突，可修改`ports`映射。
 - `config.json`用于系统级配置，建议保持默认，模型配置我们在Web界面进行。
+- 本项目的修改如下：
+`docker-compose.yml`
+```bash
+# 这个设置成自己服务器的公网IP就行，端口不变
+S3_EXTERNAL_BASE_URL: http://123.456.789.112:7002
+
+# fastgpt这里加了extra_hosts
+...
+fastgpt:
+    container_name: fastgpt
+    image: registry.cn-hangzhou.aliyuncs.com/fastgpt/fastgpt:v4.14.3 # git
+    ports:
+     - 3000:3000
+    networks:
+      - fastgpt
+    # 添加了extra_hosts
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - mongo
+      - sandbox
+      - vectorDB
+...
+
+# fastgpt-mcp-server里也加了extra_hosts
+...
+fastgpt-mcp-server:
+    container_name: fastgpt-mcp-server
+    image: registry.cn-hangzhou.aliyuncs.com/fastgpt/fastgpt-mcp_server:v4.14.3
+    networks:
+     - fastgpt
+    ports:
+     - 3005:3000
+    # 添加了extra_hosts
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: always
+...
+```
+
+`config.json`
+```bash
+# 这个设置成自己服务器的公网IP就行，端口不变
+...
+  "mcpServerProxyEndpoint": "http://123.456.789.112:7003"
+...
+```
 
 ### 4.3 启动FastGPT
 ```bash
@@ -196,3 +243,151 @@ docker-compose up -d
 正常的话可以进行下一步了，有异常的话用curl等工具检查下网络通信是否正常(Docker与宿主机的通信是否正常，通常都是防火墙拦截了)
 
 ## 5.公网访问(FRP + Nginx)
+### 5.1 下载frps
+- 注：云服务器和本地客户端都要下载解压这个包
+```bash
+# 创建个文件夹放frp文件
+mkdir ./frp && cd ./frp
+
+# 下载frp包
+wget https://github.com/fatedier/frp/releases/download/v0.65.0/frp_0.65.0_linux_amd64.tar.gz
+
+# 解压
+tar -zxvf frp_0.65.0_linux_amd64.tar.gz
+```
+
+### 5.2 配置云服务器端(frps)
+在当前`frp`目录下`nano ./frps.ini`进行配置:
+```bash
+[common]
+# frps与frpc通信的端口(要和你frpc.ini的server_port一致)
+bind_port = 7000
+bind_addr = 0.0.0.0
+# 日志路径
+log_file = ./frps.log   
+log_level =info
+# 日志最大保存天数
+log_max_days = 7        
+
+# !!!强密码,这个token可以自己去随机生成一个,与frpc端必须一致
+authentication_method = token
+token = 8f7d6c5b4a3e2d1c9b8a7f6e5d4c3b2a
+
+# 启用TLS - 必须
+tls_enable = true
+```
+配置完成保存后就可以启动frps服务了
+```bash
+./frps -c ./frps.ini
+```
+
+### 5.3 配置本地客户端(frpc)
+在当前`frp`目录下`nano ./frpc.ini`进行配置:
+```bash
+[common]
+# 填写你的云服务器公网IP
+server_addr = 此处填写云服务器公网IP
+server_port = 7000
+authentication_method = token
+token = 8f7d6c5b4a3e2d1c9b8a7f6e5d4c3b2a
+
+# 启用TLS - 必须
+tls_enable = true
+
+[fastgpt-app]
+type = tcp
+local_ip = 127.0.0.1
+local_port = 3000
+remote_port = 7001
+
+[fastgpt-mcp]
+type = tcp
+local_ip = 127.0.0.1
+local_port = 3005
+remote_port = 7003
+
+[fastgpt-s3]
+type = tcp
+local_ip = 127.0.0.1
+local_port = 9000
+remote_port = 7002
+```
+配置完成保存后就可以启动frps服务了
+```bash
+./frpc -c ./frpc.ini
+```
+
+### 5.4 安全组和防火墙开放
+云服务器的安全组得开放以下几个端口:
+`80` `7000` `7001` `7002` `7003`
+
+云服务器和本地客户端都得开放以上几个端口：
+```bash
+sudo ufw allow 80/tcp
+sudo ufw allow 7000/tcp
+sudo ufw allow 7001/tcp
+sudo ufw allow 7002/tcp
+sudo ufw allow 7003/tcp
+
+sudo ufw reload
+```
+
+### 5.5 配置Nginx
+在云服务器上新建个配置文件
+```sudo nano /etc/nginx/conf.d/fastgpt.conf```
+
+直接粘贴，然后对三处进行修改地址：
+```bash
+# 1. 主应用, 根据自己服务器的实际公网IP进行修改
+server {
+    listen 80;
+    server_name 此处修改为你的服务器公网IP + 端口(例如：123.456.789.112:7001);
+
+    location / {
+        proxy_pass http://127.0.0.1:7001;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        # WebSocket支持(FastGPT打字机效果需要)
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+}
+
+# 2. S3文件服务, 根据自己服务器的实际公网IP进行修改
+server {
+    listen 80;
+    server_name 此处修改为你的服务器公网IP + 端口(例如：123.456.789.112:7002);
+
+    # 允许上传大文件,这个大小自行设置
+    client_max_body_size 1000m;
+
+    location / {
+        proxy_pass http://127.0.0.1:7002;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+}
+
+# 3. MCP 服务, 根据自己服务器的实际公网IP进行修改
+server {
+    listen 80;
+    server_name 此处修改为你的服务器公网IP + 端口(例如：123.456.789.112:7003);
+
+    location / {
+        proxy_pass http://127.0.0.1:7003;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+}
+```
+
+保存好后重启Nginx服务：
+```bash
+sudo nginx -t
+sudo systemctl reload nginx
+```
+🤝贡献
+欢迎提交Issue
