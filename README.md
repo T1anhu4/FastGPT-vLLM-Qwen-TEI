@@ -9,7 +9,7 @@
 
 ![FastGPT](https://img.shields.io/badge/FastGPT-blue)
 ![vLLM](https://img.shields.io/badge/vLLM-0.12.0-green)
-![Qwen](https://img.shields.io/badge/Model-Qwen2.5--7B-violet)
+![Qwen](https://img.shields.io/badge/Model-Qwen2.5--7B--Instruct-violet)
 ![TEI](https://img.shields.io/badge/Embedding-BGE--M3-orange)
 
 ## 📖项目简介
