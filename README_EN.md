@@ -62,10 +62,10 @@ docker-compose -v
 # 2. Configure domestic image source (key: commas are strictly prohibited at the end of JSON arrays)
 sudo tee /etc/docker/daemon.json <<EOF
 {
-"registry-mirrors": [
-"[ https://docker.nju.edu.cn ]( https://docker.nju.edu.cn )",
-"[ https://docker.m.daocloud.io ]( https://docker.m.daocloud.io )"
-]
+    "registry-mirrors": [
+        "[https://docker.nju.edu.cn](https://docker.nju.edu.cn)",
+        "[https://docker.m.daocloud.io](https://docker.m.daocloud.io)"
+    ]
 }
 EOF
 
@@ -80,7 +80,7 @@ sudo systemctl restart docker
 ```
 
 ### 1.3 Installing Python Environment
-- Note: This project uses a virtual environment installed by Miniforge. Of course, you can choose your own local Python environment without using a virtual environment~
+- Note: This project uses a virtual environment installed by `Miniforge`. Of course, you can choose your own local Python environment without using a virtual environment~
 ```bash
 #Create and activate an environment
 conda create -n llm python=3.10
@@ -150,6 +150,7 @@ bash <(curl -fsSL  https://doc.fastgpt.cn/deploy/install.sh ) --region=global --
 - Normally, `docker-compose.yml` does not require modification. If there is a port conflict, the `ports` mapping can be modified.
 - `config. json` is used for system level configuration, it is recommended to keep it as default. We configure the model through the web interface.
 - The modifications to this project are as follows:
+
 `docker-compose.yml`
 ```bash
 # Just set this as the public IP of your own server, keep the port unchanged
@@ -202,7 +203,7 @@ restart: always
 # Start all services (Mongo, Postgres, FastGPT, OneAPI)
 docker-compose up -d
 ```
-- Access address: `http://localhost:3000 `(Default account: 'root', password: 'Docker-compose. yml' in 'DEFAULT_SOOT_PSW').
+- Access address: `http://localhost:3000 `(Default account: `root`, password: `docker-compose.yml` in `DEFAULT_ROOT_PSW`).
 - The official default password, I remember, is `1234`.
 
 ### 4.4 Configuring Model Channels
@@ -241,7 +242,7 @@ Go to `FastGPT` -> `Account` -> `Model Provider` -> `Model Channel` -> `New Chan
 After configuring both models, you can perform 'model testing' separately to check if they are functioning properly.
 If everything is normal, you can proceed to the next step. If there are any abnormalities, use tools such as curl to check if the network communication is normal (Docker's communication with the host machine is usually blocked by the firewall).
 
-## 5. Public network access (FRP+Nginx)
+## 5. Public network access (FRP + Nginx)
 ### 5.1 Download FRP
 - Note: Both the cloud server and local client need to download and decompress this package.
 ```bash
@@ -256,7 +257,7 @@ tar -zxvf frp_0.65.0_linux_amd64.tar.gz
 ```
 
 ### 5.2 Configuring the cloud server side (frps)
-Configure nano./frps. ini in the current frp directory:
+Configure `nano ./frps.ini` in the current `frp` directory:
 ```bash
 [common]
 # The communication port between frps and frpc should be consistent with the server port in your frpc.ini file
@@ -283,7 +284,7 @@ After the configuration is completed and saved, the frps service can be started.
 ```
 
 ### 5.3 Configuring Local Client (frpc)
-Configure nano./frpc. ini in the current frp directory:
+Configure `nano ./frpc.ini` in the current `frp` directory:
 ```bash
 [common]
 # Fill in your cloud server's public IP address
@@ -338,6 +339,7 @@ sudo ufw reload
 
 ### 5.5 Configuring Nginx
 Create a new configuration file on the cloud server
+
 ```sudo nano /etc/nginx/conf.d/fastgpt.conf```
 
 Paste directly and then modify the address in three places:
