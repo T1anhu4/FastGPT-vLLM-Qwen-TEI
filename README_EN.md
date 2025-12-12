@@ -135,3 +135,238 @@ sudo docker run --gpus all -d --name tei-bge \
 m.daocloud.io/ghcr.io/huggingface/text-embeddings-inference:latest \
 --model-id /data
 ```
+## 4. Deploy FastGPT
+###4.1 Creating directories and pulling configuration files
+-Please choose to download the following two images yourself. If you are unable to download them, you can manually download them from this repository
+-I have uploaded the files' docker-compose.yml 'and' config. json 'to this repository
+```bash
+#Domestic mirror (Alibaba Cloud)
+bash <(curl -fsSL  https://doc.fastgpt.cn/deploy/install.sh ) --region=cn --vector=pg
+
+#Non domestic images (dockhub, ghcr)
+bash <(curl -fsSL  https://doc.fastgpt.cn/deploy/install.sh ) --region=global --vector=pg
+```
+
+###4.2 Modify configuration file (optional)
+-Normally, ` docker compose. yml ` does not require modification. If there is a port conflict, the 'ports' mapping can be modified
+-` config. json ` is used for system level configuration, it is recommended to keep it as default. We configure the model through the web interface
+-The modifications to this project are as follows:
+`docker-compose.yml`
+```bash
+#Just set this as the public IP of your own server, keep the port unchanged
+S3_EXTERNAL_BASE_URL:  http://123.456.789.112:7002
+
+#Fastgpt has added extra_ hosts here
+...
+fastgpt:
+container_name: fastgpt
+image: registry.cn-hangzhou.aliyuncs.com/fastgpt/fastgpt:v4.14.3 # git
+ports:
+- 3000:3000
+networks:
+- fastgpt
+#Added extra-hosts
+extra_hosts:
+- "host.docker.internal:host-gateway"
+depends_on:
+- mongo
+- sandbox
+- vectorDB
+...
+
+#The fastgpt mcp server has also added extra-hosts
+...
+fastgpt-mcp-server:
+container_name: fastgpt-mcp-server
+image: registry.cn-hangzhou.aliyuncs.com/fastgpt/fastgpt-mcp_server:v4.14.3
+networks:
+- fastgpt
+ports:
+- 3005:3000
+#Added extra-hosts
+extra_hosts:
+- "host.docker.internal:host-gateway"
+restart: always
+...
+```
+
+`config.json`
+```bash
+#Just set this as the public IP of your own server, keep the port unchanged
+...
+"mcpServerProxyEndpoint": " http://123.456.789.112:7003 "
+...
+```
+
+###4.3 Starting FastGPT
+```bash
+#Start all services (Mongo, Postgres, FastGPT, OneAPI)
+docker-compose up -d
+```
+-Access address:` http://localhost:3000 `(Default account: 'root', password: 'Docker-compose. yml' in 'DEFAULT_SOOT_PSW')
+-The official default password, I remember, is' 1234 '`
+
+###4.4 Configuring Model Channels
+Go to FastGPT ->Account ->Model Provider ->Model Channel ->New Channel:
+
+1. Qwen2.5 configuration:
+-Channel name: Write whatever you want
+-Protocol Type: OpenAI`
+-Model: 'New Model' ->'Language Model'`
+-Model ID: Qwen2.5 (which can also be set in the vLLM startup command)
+-Model provider: 'Tongyi Qianwen'`
+-Alias: Write whatever you want
+-Maximum context: ` 12288`
+-Maximum citation in the knowledge base: ` 10000`
+-Maximum response tokens: 2048`
+-Right function switch: ✅ Tool invocation ✅ Knowledge base processing ✅ Problem classification ✅ text extraction ✅ Tool call node (can be set according to one's own needs)
+-After setting up the model, click 'confirm' and select 'Qwen2.5' model
+-Proxy address:` http://172.17.0.1:8000/v1 `(Host gateway IP)
+-API key: 'sk-123456' (This can be set by yourself when using vLLM to start the model. If the startup command is not set, this field can be filled in freely)
+
+2. BGE-M3 configuration:
+-Channel name: Write whatever you want
+-Protocol Type: OpenAI`
+-Model: 'New Model' ->'Index Model'`
+-Model ID: BAAI/bge-m3 (this can also be set in the vLLM startup command)
+-Model provider: OpenAI`
+-Alias: Write whatever you want
+-  ✅  normalization
+-Number of concurrent requests: ` 5`
+-Default block length: ` 512`
+-Maximum context: ` 8192`
+-After setting up the model, click 'confirm' and select 'BAII/bge-m3' model
+-Proxy address:` http://172.17.0.1:8000/v1 `(Host gateway IP)
+-API key: 'sk aabbb' (I didn't set it when I started it here, so I filled it in randomly)
+
+After configuring both models, you can perform 'model testing' separately to check if they are functioning properly
+If everything is normal, you can proceed to the next step. If there are any abnormalities, use tools such as curl to check if the network communication is normal (Docker's communication with the host machine is usually blocked by the firewall)
+
+## 5. Public network access (FRP+Nginx)
+###5.1 Download FRP
+-Note: Both the cloud server and local client need to download and decompress this package
+```bash
+#Create a folder to store FRP files
+mkdir ./frp && cd ./frp
+
+#Download FRP package
+wget  https://github.com/fatedier/frp/releases/download/v0.65.0/frp_0.65.0_linux_amd64.tar.gz
+
+#Relieve stress
+tar -zxvf frp_0.65.0_linux_amd64.tar.gz
+```
+
+###5.2 Configuring the cloud server side (frps)
+Configure nano./frps. ini in the current frp directory:
+```bash
+[common]
+#The communication port between frps and frpc should be consistent with the server port in your frpc.ini file
+bind_port = 7000
+bind_addr = 0.0.0.0
+#Log path
+log_file = ./frps.log   
+log_level =info
+#Maximum storage days for logs
+log_max_days = 7        
+
+# !!! Strong password, this token can be randomly generated by oneself and must be consistent with the frpc end
+authentication_method = token
+token = 8f7d6c5b4a3e2d1c9b8a7f6e5d4c3b2a
+
+#Enable TLS - Required
+tls_enable = true
+```
+After the configuration is completed and saved, the frps service can be started
+```bash
+./frps -c ./frps.ini
+```
+
+###5.3 Configuring Local Client (frpc)
+Configure nano./frpc. ini in the current frp directory:
+```bash
+[common]
+#Fill in your cloud server's public IP address
+Serverless=Fill in the public IP address of the cloud server here
+server_port = 7000
+authentication_method = token
+token = 8f7d6c5b4a3e2d1c9b8a7f6e5d4c3b2a
+
+#Enable TLS - Required
+tls_enable = true
+
+[fastgpt-app]
+type = tcp
+local_ip = 127.0.0.1
+local_port = 3000
+remote_port = 7001
+
+[fastgpt-mcp]
+type = tcp
+local_ip = 127.0.0.1
+local_port = 3005
+remote_port = 7003
+
+[fastgpt-s3]
+type = tcp
+local_ip = 127.0.0.1
+local_port = 9000
+remote_port = 7002
+```
+After the configuration is completed and saved, the frps service can be started
+```bash
+./frpc -c ./frpc.ini
+```
+
+###5.4 Security Group and Firewall Openness
+The security group of the cloud server needs to open the following ports:
+`80` `7000` `7001` `7002` `7003`
+
+Both cloud servers and local clients must open the above ports:
+```bash
+sudo ufw allow 80/tcp
+sudo ufw allow 7000/tcp
+sudo ufw allow 7001/tcp
+sudo ufw allow 7002/tcp
+sudo ufw allow 7003/tcp
+
+sudo ufw reload
+```
+
+###5.5 Configuring Nginx
+Create a new configuration file on the cloud server
+```sudo nano /etc/nginx/conf.d/fastgpt.conf```
+
+Paste directly and then modify the address in three places:
+```bash
+# 1. Main application, modify according to the actual public IP address of its own server
+server {
+listen 80;
+Change the server name here to your server's public IP and port (e.g. 123.456.789.112:7001);
+
+location / {
+proxy_pass  http://127.0.0.1:7001 ;
+proxy_set_header Host $host;
+proxy_set_header X-Real-IP $remote_addr;
+proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+#WebSocket support (FastGPT typewriter effect required)
+proxy_set_header Upgrade $http_upgrade;
+proxy_set_header Connection "upgrade";
+}
+}
+
+# 2. S3 file service, modify according to the actual public IP address of your own server
+server {
+listen 80;
+Change the server name here to your server's public IP and port (e.g. 123.456.789.112:7002);
+
+#Allow uploading large files, set the size by yourself
+client_max_body_size 1000m;
+
+location / {
+proxy_pass  http://127.0.0.1:7002 ;
+proxy_set_header Host $host;
+proxy_set_header X-Real-IP $remote_addr;
+proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+}
+}
+
