@@ -7,9 +7,9 @@
 > 基于vLLM(Qwen2.5)的FastGPT高性能私有RAG知识库和Frp+Nginx公网访问的一站式部署方案。
 > 专为国内内网环境优化，解决HuggingFace下载、Docker镜像加速及显存OOM等痛点。
 
-![FastGPT](https://img.shields.io/badge/FastGPT-v4.x-blue)
-![vLLM](https://img.shields.io/badge/vLLM-0.6.x-green)
-![Qwen](https://img.shields.io/badge/Model-Qwen2.5--7B-violet)
+![FastGPT](https://img.shields.io/badge/FastGPT-blue)
+![vLLM](https://img.shields.io/badge/vLLM-0.12.0-green)
+![Qwen](https://img.shields.io/badge/Model-Qwen2.5-7B-Instruct-violet)
 ![TEI](https://img.shields.io/badge/Embedding-BGE--M3-orange)
 
 ## 📖项目简介
@@ -389,5 +389,8 @@ server {
 sudo nginx -t
 sudo systemctl reload nginx
 ```
+
+此时去公网访问```123.456.789.112:7001```就可以进入到fastgpt的页面了
+
 🤝贡献
 欢迎提交Issue
