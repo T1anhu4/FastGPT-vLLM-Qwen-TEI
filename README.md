@@ -4,8 +4,8 @@
 
 # 🚀FastGPT-vLLM-Qwen-TEI全链路本地化部署
 
-> 基于vLLM(Qwen2.5)的FastGPT高性能私有RAG知识库和Frp+Nginx公网访问的一站式部署方案。
-> 专为国内内网环境优化，解决HuggingFace下载、Docker镜像加速及显存OOM等痛点。
+> 基于vLLM(Qwen2.5)的FastGPT高性能私有RAG知识库和Frp+Nginx公网访问的一站式部署方案
+> 专为国内内网环境优化，解决HuggingFace下载、Docker镜像加速及显存OOM等痛点
 
 ![FastGPT](https://img.shields.io/badge/FastGPT-blue)
 ![vLLM](https://img.shields.io/badge/vLLM-0.12.0-green)
@@ -14,13 +14,13 @@
 
 ## 📖项目简介
 
-本项目提供了一套完整的FastGPT本地化部署实战指南，基于vLLM（推理加速）和TEI（向量加速）构建，充分发挥单卡显存性能，实现高并发、低延迟的知识库问答。
+本项目提供了一套完整的FastGPT本地化部署实战指南，基于vLLM（推理加速）和TEI（向量加速）构建，充分发挥单卡显存性能，实现高并发、低延迟的知识库问答
 
 ### 核心特性
-- 🇨🇳 **国内网络优化**：提供HuggingFace镜像下载、Docker镜像代理配置全流程。
-- ⚡ **高性能推理**：使用vLLM部署Qwen2.5-7B，使用TEI部署BGE-M3。
-- 💾 **显存精细管理**：通过参数调优，实现LLM与Embedding模型在单卡显存下的稳定共存。
-- 🌐 **公网访问**：集成FRP + Nginx方案，实现内网服务的公网安全访问。
+- 🇨🇳 **国内网络优化**：提供HuggingFace镜像下载、Docker镜像代理配置全流程
+- ⚡ **高性能推理**：使用vLLM部署Qwen2.5-7B，使用TEI部署BGE-M3
+- 💾 **显存精细管理**：通过参数调优，实现LLM与Embedding模型在单卡显存下的稳定共存
+- 🌐 **公网访问**：集成FRP + Nginx方案，实现内网服务的公网安全访问
 
 ## 🛠️技术栈
 - **应用层**：FastGPT + MongoDB + PostgreSQL(pgvector)
@@ -41,11 +41,11 @@
 - Dcoker Compose 2.20.3
 
 ### 1.1 安装NVIDIA驱动与CUDA
-确保`nvidia-smi`可以正常输出显卡信息。推荐安装CUDA 12.1或以上版本。
-详细的安装教程可以自行搜索，本项目不过多介绍。
+确保`nvidia-smi`可以正常输出显卡信息。推荐安装CUDA 12.1或以上版本
+详细的安装教程可以自行搜索，本项目不过多赘述
 
 ### 1.2 安装Docker与NVIDIA Container Toolkit
-- 注意：必须安装`NVIDIA Container Toolkit`，否则Docker容器无法调用显卡。
+- 注意：必须安装`NVIDIA Container Toolkit`，否则Docker容器无法调用显卡
 
 ```bash
 # 1. 安装Docker
@@ -109,9 +109,9 @@ huggingface-cli download --resume-download BAAI/bge-m3 \
 
 ## 3. 启动本地模型服务
 ### 3.1 启动vLLM(Qwen2.5)
-- 注意：本项目为了保证单卡24G显存能够同时运行Embedding模型，我将vLLM的显存利用率严格限制在80%，实际可根据自己显卡的显存来调整这个比例。
-- `--served-model-name Qwen2.5`: 关键参数，强制指定模型名称，防止FastGPT报错404。
-- `--gpu-memory-utilization 0.8`: 预留约20%显存给TEI模型使用。
+- 注意：本项目为了保证单卡24G显存能够同时运行Embedding模型，我将vLLM的显存利用率严格限制在80%，实际可根据自己显卡的显存来调整这个比例
+- `--served-model-name Qwen2.5`: 关键参数，强制指定模型名称，防止FastGPT报错404
+- `--gpu-memory-utilization 0.8`: 预留约20%显存给TEI模型使用
 ```bash
 # 将/your/path/Qwen2.5替换为刚刚下载好的模型路径
 python -m vllm.entrypoints.openai.api_server \
@@ -125,7 +125,7 @@ python -m vllm.entrypoints.openai.api_server \
 ```
 
 ### 3.2 启动TEI(BGE-M3)
-- 注意：本项目使用Docker挂载本地模型目录，彻底规避容器内下载失败的问题。
+- 注意：本项目使用Docker挂载本地模型目录，彻底规避容器内下载失败的问题
 ```bash
 # 将/your/path/bge-m3替换为刚刚下载好的模型路径
 # 使用m.daocloud.io代理ghcr.io镜像
@@ -138,8 +138,8 @@ sudo docker run --gpus all -d --name tei-bge \
 
 ## 4. 部署FastGPT
 ### 4.1 创建目录与拉取配置文件
-- 以下两个镜像自行选择下载,若无法下载可以在本仓库中手动下载。
-- `docker-compose.yml`和`config.json`文件我已经上传在本仓库了。
+- 以下两个镜像自行选择下载,若无法下载可以在本仓库中手动下载
+- `docker-compose.yml`和`config.json`文件我已经上传在本仓库了
 ```bash
 # 国内镜像(阿里云)
 bash <(curl -fsSL https://doc.fastgpt.cn/deploy/install.sh) --region=cn --vector=pg
@@ -149,8 +149,8 @@ bash <(curl -fsSL https://doc.fastgpt.cn/deploy/install.sh) --region=global --ve
 ```
 
 ### 4.2 修改配置文件(可选)
-- 通常情况下，`docker-compose.yml`无需修改。如果端口冲突，可修改`ports`映射。
-- `config.json`用于系统级配置，建议保持默认，模型配置我们在Web界面进行。
+- 通常情况下，`docker-compose.yml`无需修改。如果端口冲突，可修改`ports`映射
+- `config.json`用于系统级配置，建议保持默认，模型配置我们在Web界面进行
 - 本项目的修改如下：
 `docker-compose.yml`
 ```bash
@@ -393,5 +393,5 @@ sudo systemctl reload nginx
 
 此时去公网访问```123.456.789.112:7001```就可以进入到fastgpt的页面了
 
-##🤝贡献
+#🤝贡献
 ###欢迎提交Issue
